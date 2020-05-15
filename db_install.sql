@@ -21,7 +21,7 @@ begin
         signal sqlstate 'LB001' set message_text = msg;
     end if;
     if (new.ip_addr like '10.%' 
-        or new.ip_addr = '218.94.158.227') then
+        or new.ip_addr = '公司出口IP') then
         set msg = 'ip forbidden';
         signal sqlstate 'LB002' set message_text = msg;
     end if;
@@ -37,7 +37,7 @@ begin
         signal sqlstate 'LB001' set message_text = msg;
     end if;
     if (new.ip_addr like '10.%' 
-        or new.ip_addr = '218.94.158.227') then
+        or new.ip_addr = '公司出口IP') then
         set msg = 'ip forbidden';
         signal sqlstate 'LB002' set message_text = msg;
     end if;

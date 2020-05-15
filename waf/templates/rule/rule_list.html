@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<style type="text/css">
+    table tr th{
+        font-weight:500;
+        font-size:12px
+    }
+    table tr td{
+        font-weight:400;
+        font-size:12px
+    }
+</style>
+{% endblock %}
+
+{% block content_header %}
+      <div class="container-fluid">
+        <div class="row mb-0">
+          <div class="col-sm-6">
+              <p class="m-0 text-dark">自动拉黑 <i class="fas fa-angle-right"></i> 规则管理</p>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body" style="font-size: 12px">
+              <div class="row">
+                  <div class="col-sm-2">
+                      <a href="/rule/create" class="btn btn-info btn-sm text-light {% if (not current_user.is_authenticated) or current_user.priv_rule == 1 %} disabled {% endif %}" style="cursor:pointer">新增规则</a>
+                  </div>
+              </div>
+              <table id="rule" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>域名</th>
+                  <th>URL</th>
+                  <th>匹配类型</th>
+                  <th>时间范围</th>
+                  <th>请求阈值</th>
+                  <th>封禁时间</th>
+                  <th>创建日期</th>
+                  <th>用户</th>
+                  <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for rule in rules %}
+                <tr>
+                  <td>{{ rule.id }}</td>
+                  <td>{{ rule.domain }}</td>
+                  <td><div style="max-width:150px;word-wrap:break-word" >{{ rule.url }}</div></td>
+                  <td>
+                      {% if rule.match_type == 'exact' %}
+                        精确
+                      {% elif rule.match_type == 'prefix' %}
+                        后模糊
+                      {% else %}
+                        unknown
+                      {% endif %}
+                  </td>
+                  <td>{{ rule.win_duration }} 秒</td>
+                  <td>{{ rule.req_threshold }}</td>
+                  <td>{{ rule.block_duration }} 分钟</td>
+                  <td>{{ rule.create_time.strftime("%Y-%m-%d") }}</td>
+                  <td>{{ rule.user_name or '' }}</td>
+                  <td>
+                      <a href="/rule/edit/{{ rule.id }}" class="btn btn-primary btn-xs {% if (not current_user.is_authenticated) or current_user.priv_rule == 1 %} disabled {% endif %}">Edit</a>
+                      <a href="/rule/delete/{{ rule.id }}" onclick="return confirm_delete('{{ rule.domain }}', '{{ rule.url }}');" class="btn btn-danger btn-xs {% if (not current_user.is_authenticated) or current_user.priv_rule == 1 %} disabled {% endif %}">Delete</a>
+                  </td>
+                </tr>
+                {% endfor %}
+                <tfoot>
+                  <tr>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                  </tr>
+                </tfoot>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            load_datatable();
+        })
+    </script>
+    <script>
+        function load_datatable() {
+            $('#rule').DataTable({
+                language: {
+                     "info":         "第 _START_ 至 _END_ 项记录，共 _TOTAL_ 项",
+                     "search":       "全文搜索 ",
+                     "lengthMenu":   "_MENU_ 记录/页",
+                     "paginate": {
+                        "first":    "首页",
+                        "previous": "上页",
+                        "next":     "下页",
+                        "last":     "末页"
+                     },
+                     "zeroRecords": "没有数据"
+                 },
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "order": [0, "desc"],
+                "info": true,
+                "autoWidth": false,
+                "sDom": '<"top"<"row"<"col-sm-3"i><"col-sm-9"f>>>t<"botton"<"row"<"col-sm-3"l><"col-sm-2"><"col-sm-7"p>>>',
+                initComplete: function () {
+                    this.api().columns([1]).every( function () {
+                        var column = this;
+                        var select = $('<select><option value=""></option></select>')
+                            .appendTo( $(column.footer()).empty() )
+                            .on( 'change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+                                column
+                                    .search( val ? '^'+val+'$' : '', true, false )
+                                    .draw();
+                            } );
+                            column.data().unique().sort().each( function ( d, j ) {
+                                select.append( '<option value="'+d+'">'+d+'</option>' )
+                            } );
+                    });
+                },
+            })
+        }
+        function confirm_delete(domain,url){
+            if(!confirm("确认删除规则: " + domain + " : " + url + " ?")) {
+                return false;
+            }
+        }
+    </script>
+
+
+{% endblock %}

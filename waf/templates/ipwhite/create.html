@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content_header %}
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+              <p class="m-0 text-dark">自动拉黑 <i class="fas fa-angle-right"></i> 新增白名单</p>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div>
+{% endblock %}
+
+{% block content %}
+      <div class="row">
+        <div class="col-6">
+          <div class="card">
+              <div class="card-head bg-warning">
+                {% for message in get_flashed_messages() %}
+                  <p style="font-size: 14px;margin-top: 8px;margin-bottom: 8px;margin-left: 10px">{{ message }}</p>
+                {% endfor %}
+              </div>
+            <div class="card-body" style="font-size: 14px">
+                <!-- general form elements -->
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                  <form class="form-horizontal" role="form" method="post">
+                    <div class="card-body">
+                      <div class="form-group row">
+                        <label for="id" class="col-sm-3 col-form-label">{{ form.ip_addr.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.ip_addr(class="form-control",id="ip_addr",type="textarea",style="font-size: 14px",placeholder="一个IP 或 多个IP以逗号分割")}}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="status" class="col-sm-3 col-form-label">{{ form.remark.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.remark(class="form-control",id="remark",style="font-size: 14px") or '' }}
+                        </div>
+                      </div>
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer">
+                      <button id="createBtn" type="submit" class="btn btn-primary {% if not current_user.is_authenticated %} disabled {% endif %}">新增</button>
+                    </div>
+                  </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+{% block script %}
+  <script>
+    $('#createBtn').click(function (e) {
+        if($(this).hasClass('disabled')){
+            e.stopPropagation();
+            return false;
+        }
+    })
+  </script>
+
+{% endblock %}

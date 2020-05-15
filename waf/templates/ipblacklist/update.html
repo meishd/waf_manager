@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content_header %}
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+              <p class="m-0 text-dark">IP黑名单</p>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right" style="font-size: 14px">
+              <li class="breadcrumb-item">主页</li>
+              <li class="breadcrumb-item active">IP黑名单</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div>
+{% endblock %}
+
+{% block content %}
+      <div class="row">
+        <div class="col-6">
+          <div class="card">
+              <div class="card-head bg-warning">
+                {% for message in get_flashed_messages() %}
+                  <p style="font-size: 14px;margin-top: 8px;margin-bottom: 8px;margin-left: 10px">{{ message }}</p>
+                {% endfor %}
+              </div>
+            <div class="card-body" style="font-size: 14px">
+                <!-- general form elements -->
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                  <form class="form-horizontal" role="form" method="post">
+                    <input type="hidden" name="sourcetype" value="{{ sourcetype }}">
+                    <input type="hidden" name="source" value="{{ source }}">
+                    <div class="card-body">
+                      <div class="form-group row">
+                        <label for="id" class="col-sm-3 col-form-label">{{ form.id.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.id(class="form-control",id="id",readonly="readonly",style="background-color:white") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="ip_addr" class="col-sm-3 col-form-label">{{ form.ip_addr.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.ip_addr(class="form-control",id="ip_addr") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="status" class="col-sm-3 col-form-label">{{ form.status.label }}</label>
+                        <div class="col-sm-9 row" style="vertical-align: middle;margin-top: 6px;">
+                          <!-- <input type="text" class="form-control" id="status" placeholder="{{ form.status.data }}"> -->
+                            <div class="col-sm-3"><input type="radio" name="status" value="0" {% if form.status.data == 0 %} checked {% endif %}> Active</div>
+                            <div class="col-sm-3"><input type="radio" name="status" value="1" {% if form.status.data == 1 %} checked {% endif %}> Inactive</div>
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="status" class="col-sm-3 col-form-label">{{ form.effective_time.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.effective_time(class="form-control",id="effective_time") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="status" class="col-sm-3 col-form-label">{{ form.remark.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.remark(class="form-control",id="remark") or '' }}
+                        </div>
+                      </div>
+
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer">
+                      <button type="submit" class="btn btn-primary">修改</button>
+                    </div>
+                  </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}}

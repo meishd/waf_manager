@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<style type="text/css">
+    table tr th{
+        font-weight:500;
+        font-size:13px
+    }
+    table tr td{
+        font-weight:400;
+        font-size:13px
+    }
+</style>
+{% endblock %}
+
+{% block content_header %}
+      <div class="container-fluid">
+        <div class="row mb-0">
+          <div class="col-sm-6">
+              <p class="m-0 text-dark">自动拉黑 <i class="fas fa-angle-right"></i> IP白名单</p>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-9">
+          <div class="card">
+            <div class="card-body" style="font-size: 12px">
+              <div class="row">
+                  <div class="col-sm-2">
+                      <a href="/ipwhite/create" class="btn btn-info btn-sm text-light {% if not current_user.is_authenticated %} disabled {% endif %}" style="cursor:pointer">新增IP</a>
+                  </div>
+              </div>
+              <table id="ipwhite" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>IP</th>
+                  <th>备注</th>
+                  <th>创建日期</th>
+                  <th>用户</th>
+                  <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for ipwhite in ipwhites %}
+                <tr>
+                  <td>{{ ipwhite.id }}</td>
+                  <td>{{ ipwhite.ip_addr }}</td>
+                  <td><div style="max-width:200px;word-wrap:break-word" >{{ ipwhite.remark }}</div></td>
+                  <td>{{ ipwhite.create_time.strftime("%Y-%m-%d") }}</td>
+                  <td>{{ ipwhite.user_name }}</td>
+                  <td>
+                      <a href="/ipwhite/edit/{{ ipwhite.id }}" class="btn btn-primary btn-xs {% if not current_user.is_authenticated %} disabled {% endif %}">Edit</a>
+                      <a href="/ipwhite/delete/{{ ipwhite.id }}" onclick="return confirm_delete('{{ ipwhite.ip_addr }}');" class="btn btn-danger btn-xs {% if not current_user.is_authenticated %} disabled {% endif %}">Delete</a>
+                  </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            load_datatables()
+        })
+    </script>
+    <script>
+        function load_datatables() {
+            $('#ipwhite').DataTable({
+                language: {
+                     "info":         "第 _START_ 至 _END_ 项记录，共 _TOTAL_ 项",
+                     "search":       "全文搜索 ",
+                     "lengthMenu":   "_MENU_ 记录/页",
+                     "paginate": {
+                        "first":    "首页",
+                        "previous": "上页",
+                        "next":     "下页",
+                        "last":     "末页"
+                     },
+                     "zeroRecords": "没有数据"
+                 },
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "order": [0, "desc"],
+                "info": true,
+                "autoWidth": false,
+                "sDom": '<"top"<"row"<"col-sm-3"i><"col-sm-9"f>>>t<"botton"<"row"<"col-sm-3"l><"col-sm-2"><"col-sm-7"p>>>'
+            })
+        }
+        function confirm_delete(ip){
+            if(!confirm("确认删除IP: " + ip + " ?")) {
+                return false;
+            }
+        }
+    </script>
+
+
+{% endblock %}

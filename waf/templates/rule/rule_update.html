@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content_header %}
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+              <p class="m-0 text-dark">自动拉黑 <i class="fas fa-caret-right"></i> 规则修改</p>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div>
+{% endblock %}
+
+{% block content %}
+      <div class="row">
+        <div class="col-6">
+          <div class="card">
+              <div class="card-head bg-warning">
+                {% for message in get_flashed_messages() %}
+                  <p style="font-size: 14px;margin-top: 8px;margin-bottom: 8px;margin-left: 10px">{{ message }}</p>
+                {% endfor %}
+              </div>
+            <div class="card-body" style="font-size: 14px">
+                <!-- general form elements -->
+                  <!-- /.card-header -->
+                  <!-- form start -->
+                  <form class="form-horizontal" role="form" method="post">
+                    <input type="hidden" name="sourcetype" value="{{ form.id.data }}">
+                    <div class="card-body">
+                      <div class="form-group row">
+                        <label for="id" class="col-sm-3 col-form-label">{{ form.id.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.id(class="form-control",id="id",readonly="readonly",style="background-color:white") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="ip_addr" class="col-sm-3 col-form-label">{{ form.domain.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.domain(class="form-control",id="domain") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="url" class="col-sm-3 col-form-label">{{ form.url.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.url(class="form-control",id="url") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="match_type" class="col-sm-3 col-form-label">{{ form.match_type.label }}</label>
+                        <div class="col-sm-9 row" style="vertical-align: middle;margin-top: 6px;">
+                            <div class="col-sm-4"><input type="radio" name="match_type" value="exact" {% if form.match_type.data=="exact" %} checked {% endif %}> 精确</div>
+                            <div class="col-sm-4"><input type="radio" name="match_type" value="prefix" {% if form.match_type.data=="prefix" %} checked {% endif %}> 后模糊</div>
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="win_duration" class="col-sm-3 col-form-label">{{ form.win_duration.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.win_duration(class="form-control",id="win_duration") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="req_threshold" class="col-sm-3 col-form-label">{{ form.req_threshold.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.req_threshold(class="form-control",id="req_threshold") }}
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label for="block_duration" class="col-sm-3 col-form-label">{{ form.block_duration.label }}</label>
+                        <div class="col-sm-9">
+                          {{ form.block_duration(class="form-control",id="block_duration") }}
+                        </div>
+                      </div>
+
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer">
+                      <button type="submit" class="btn btn-primary">修改</button>
+                    </div>
+                  </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}}

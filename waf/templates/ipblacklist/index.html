@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block style %}
+<style type="text/css">
+    table tr th{
+        font-weight:500;
+        font-size:14px
+    }
+    table tr td{
+        font-weight:400;
+        font-size:14px
+    }
+</style>
+{% endblock %}
+{% block content_header %}
+      <div class="container-fluid">
+        <div class="row mb-0">
+          <div class="col-sm-6">
+              <p class="m-0 text-dark">IP黑名单</p>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div>
+{% endblock %}
+
+{% block content %}
+        <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body" style="font-size: 14px">
+                <div class="row">
+                    <div class="col-sm-2">
+                      <div class="form-group">
+                        <select id="sourcetype" class="custom-select" style="font-size: 14px">
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-sm-2">
+                      <div class="form-group">
+                        <select id="source" class="custom-select" style="font-size: 14px">
+                          <option value="all" style="display: none" selected>来源</option>
+                          <option value="all">all</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-sm-0"></div>
+                    <div class="col-sm-1" style="margin-top: 12px;">
+                        <div id="showremark" style="display:none;"><a class="toggle-vis" data-column="8" style="cursor:pointer;" style="font-size: 14px;" onclick="click_show_remakr()"><I><U>显示备注</U></I></a></div>
+                        <div id="hideremark" style="display:block;"><a class="toggle-vis" data-column="8" style="cursor:pointer;" style="font-size: 14px" onclick="click_hide_remakr()"><I><U>隐藏备注</U></I></a></div>
+                    </div>
+                </div>
+
+              <table id="ipblacklist" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>IP</th>
+                  <th>有效期</th>
+                  <th>状态</th>
+                  <th>来源类型</th>
+                  <th>来源</th>
+                  <th>创建时间</th>
+                  <th>修改时间</th>
+                  <th>备注</th>
+                  <th>操作</th>
+                </tr>
+                </thead>
+              </table>
+            </div>
+            <!-- /.card-body -->
+          </div>
+          <!-- /.card -->
+        </div>
+        <!-- /.col -->
+      </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            load_source_type();
+            $('#sourcetype').bind('change',function () {
+                var sourcetype = $(this).val();
+                load_source(sourcetype);
+            });
+            $('#source').bind('change',function () {
+                load_datatable();
+            });
+        })
+    </script>
+    <script>
+        function click_show_remakr(){
+            $("#showremark").attr("style","display:none");
+            $("#hideremark").attr("style","display:block");
+        }
+        function click_hide_remakr(){
+            $("#showremark").attr("style","display:block");
+            $("#hideremark").attr("style","display:none");
+        }
+        function set_remark_hide(){
+            var table = $('#ipblacklist').DataTable( {
+                "retrieve": true
+            } );
+            $('a.toggle-vis').on( 'click', function (e) {
+                e.preventDefault();
+                var column = table.column( $(this).attr('data-column') );
+                column.visible( ! column.visible() );
+            } );
+        }
+        function confirm_delete(ip){
+            if(!confirm("确认删除IP: " + ip + " ?")) {
+                return false;
+            }
+        }
+        function load_source_type() {
+            $.ajax({
+                 type: "GET",
+                 url: "/ipblacklist/source_type",
+                 success: function(data) {
+                     arr = $.parseJSON(data);
+                     var sourcetypeOpt = '<option value="all" style="display: none" {{ "" if sourcetype == "all" else "selected" }}><p>来源类型</p></option>'
+                     sourcetypeOpt += '<option value="all">all</option>'
+                     for (var i=0; i<arr.sourcetype.length; i++) {
+                         if ("{{ sourcetype }}" == arr.sourcetype[i])
+                             sourcetypeOpt += ' <option value="' + arr.sourcetype[i] + '" selected>' + arr.sourcetype[i] + '</option>'
+                         else
+                             sourcetypeOpt += ' <option value="' + arr.sourcetype[i] + '">' + arr.sourcetype[i] + '</option>'
+                     }
+                     $('#sourcetype').html(sourcetypeOpt)
+                     if ("{{ sourcetype }}" != "all")
+                         load_source("{{ sourcetype }}");
+                     load_datatable();
+                 }
+            })
+        }
+        function load_source(source_type){
+            $.ajax({
+                type:"GET",
+                url:"/ipblacklist/source/" + source_type,
+                success:function (data) {
+                    arr = $.parseJSON(data);
+                    var sourceOpt = '<option value="all" style="display: none" {{ "" if source == "all" else "selected" }}>来源</option>'
+                    sourceOpt += '<option>all</option>'
+                    for (var i=0; i<arr.source.length; i++) {
+                         if ("{{ source }}" == arr.source[i])
+                             sourceOpt += ' <option value="' + arr.source[i] + '" selected>' + arr.source[i] + '</option>'
+                         else
+                             sourceOpt += ' <option value="' + arr.source[i] + '">' + arr.source[i] + '</option>'
+                    }
+                    $('#source').html(sourceOpt);
+                    load_datatable();
+                }
+            })
+        }
+
+        function load_datatable(){
+            $('#ipblacklist').DataTable({
+                 language: {
+                     "info":         "第 _START_ 至 _END_ 项记录，共 _TOTAL_ 项",
+                     "search":       "全文搜索 ",
+                     "lengthMenu":   "_MENU_ 记录/页",
+                     "paginate": {
+                        "first":    "首页",
+                        "previous": "上页",
+                        "next":     "下页",
+                        "last":     "末页"
+                     },
+                     "zeroRecords": "没有数据"
+                 },
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "searchDelay": 400,
+                "ordering": true,
+                "order": [0, "desc"],
+                "info": true,
+                "autoWidth": false,
+                "sDom": '<"top"<"row"<"col-sm-3"i><"col-sm-9"f>>>t<"botton"<"row"<"col-sm-3"l><"col-sm-2"><"col-sm-7"p>>>',
+                "destroy": true,
+                "serverSide": true,
+                ajax: function (data, callback, settings) {
+                    var draw = data.draw;
+                    var pagesize = data.length;
+                    var start = data.start;
+                    var pageindex = (data.start) / data.length + 1;
+                    var fullsearchword = data.search.value;
+                    var sourcetype = $('#sourcetype').val();
+                    var source = $('#source').val();
+                    var par_data = {
+                        pageindex: pageindex,
+                        pagesize: pagesize,
+                        fullsearchword: fullsearchword,
+                        sourcetype: sourcetype,
+                        source: source,
+                    }
+                    var json={
+                        dataArray:JSON.stringify(par_data)
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/ipblacklist/index_json",
+                        cache : false,
+                        data: json,
+                        dataType: "json",
+
+                        success: function(data) {
+                            var arr = "";
+                            if ('object' == typeof data) {
+                                arr = data;
+                            } else {
+                                arr = $.parseJSON(data);
+                            }
+                            var returnData = {};
+                            returnData.draw = draw;
+                            returnData.recordsTotal = arr.ipblacklist.pagination.totalcount;
+                            returnData.recordsFiltered = arr.ipblacklist.pagination.totalcount;
+                            returnData.data = arr.ipblacklist.ipblacklistArray;
+                            callback(returnData);
+                        }
+                    });
+                },
+                columns: [
+                    {"data": "id", "title": "ID"},
+                    {"data": "ip_addr"},
+                    {"data": "effective_time"},
+                    {"data": "status"},
+                    {"data": "source_type"},
+                    {"data": "source"},
+                    {"data": "create_time"},
+                    {"data": "modify_time"},
+                    {"data": "remark",
+                     "render": function (obj, type, full, meta) {
+                        if (obj==null)
+                            myobj = ""
+                         else
+                             myobj = obj
+                        return "<div style='max-width:80px;word-wrap:break-word' >" + myobj + "</div>"
+                     }
+                    },
+                    {"render":
+                        function (obj, type, full, meta) {
+                            return  "<a href='/ipblacklist/edit/" + full.id + "?sourcetype=" + $('#sourcetype').val() + "&source=" + $('#source').val() + "' class='btn btn-primary btn-xs {% if not current_user.is_authenticated %} disabled {% endif %}'>Edit</a> " +
+                                     "<a href='/ipblacklist/delete/" + full.id + "?sourcetype=" + $('#sourcetype').val() + "&source=" + $('#source').val() + "' onclick=\"return confirm_delete('" + full.ip_addr + "');\" class='btn btn-danger btn-xs {% if not current_user.is_authenticated %} disabled {% endif %}'>Delete</a>"
+                        }
+                    }
+                ]
+            });
+            set_remark_hide();
+        }
+    </script>
+{% endblock %}

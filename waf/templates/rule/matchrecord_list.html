@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<style type="text/css">
+    table tr th{
+        font-weight:500;
+        font-size:13px
+    }
+    table tr td{
+        font-weight:400;
+        font-size:13px
+    }
+</style>
+{% endblock %}
+
+{% block content_header %}
+      <div class="container-fluid">
+        <div class="row mb-0">
+          <div class="col-sm-6">
+              <p class="m-0 text-dark">自动拉黑 <i class="fas fa-angle-right"></i> 阻断明细</p>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body" style="font-size: 12px">
+              <div class="row">
+                    <div class="col-sm-2">
+                      <div class="form-group">
+                        <select id="rule_domain" class="custom-select" style="font-size: 14px">
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-sm-2">
+                      <div class="form-group">
+                        <select id="rule_url" class="custom-select" style="font-size: 14px">
+                          <option value="all" style="display: none" selected>URL</option>
+                          <option value="all">all</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-sm-2">
+                      <div class="form-group">
+                        <select id="time_range" class="custom-select" style="font-size: 14px">
+                          <option value="24" style="display: none" selected>最近1天</option>
+                          <option value="1">最近1小时</option>
+                          <option value="6">最近6小时</option>
+                          <option value="24">最近1天</option>
+                          <option value="72">最近3天</option>
+                          <option value="168">最近7天</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-sm-1">
+                        <div class="form-group">
+                            <a onclick="return load_datatable();" id="refresh" class="btn btn-block btn-info text-light" style="cursor:pointer;font-size: 14px;margin-top: 1px">刷新</a>
+                        </div>
+                    </div>
+                    <div id="load" class="col-sm-1" style="font-size: 14px;margin-top: 8px"></div>
+              </div>
+              <table id="matchrecord" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>规则ID</th>
+                  <th>IP</th>
+                  <th>开始时间</th>
+                  <th>结束时间</th>
+                  <th>请求次数</th>
+                  <th>捕获时间</th>
+                </tr>
+                </thead>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            load_rule_domain();
+            $('#rule_domain').bind('change',function () {
+                var rule_domain = $(this).val();
+                load_rule_url(rule_domain);
+            });
+            $('#rule_url').bind('change',function () {
+                load_datatable();
+            });
+            $('#time_range').bind('change',function () {
+                load_datatable();
+            });
+        })
+    </script>
+    <script>
+        function load_rule_domain() {
+            $.ajax({
+                 type: "GET",
+                 url: "/rule/rule_domain",
+                 success: function(data) {
+                     arr = $.parseJSON(data);
+                     var ruledomainOpt = '<option value="all" style="display: none" selected><p>域名</p></option>'
+                     ruledomainOpt += '<option value="all">all</option>'
+                     for (var i=0; i<arr.rule_domain.length; i++) {
+                             ruledomainOpt += ' <option value="' + arr.rule_domain[i] + '">' + arr.rule_domain[i] + '</option>'
+                     }
+                     $('#rule_domain').html(ruledomainOpt)
+                     load_datatable();
+                 }
+            })
+        }
+        function load_rule_url(rule_domain){
+            $.ajax({
+                type:"GET",
+                url:"/rule/rule_url/" + rule_domain,
+                success:function (data) {
+                    arr = $.parseJSON(data);
+                    var ruleurlOpt = '<option value="all" style="display: none" selected}}>URL</option>'
+                    ruleurlOpt += '<option>all</option>'
+                    for (var i=0; i<arr.rule_url.length; i++) {
+                        ruleurlOpt += ' <option value="' + arr.rule_url[i] + '">' + arr.rule_url[i] + '</option>'
+                    }
+                    $('#rule_url').html(ruleurlOpt);
+                    load_datatable();
+                }
+            })
+        }
+        function load_datatable(){
+            $("#refresh").addClass("disabled");
+            $('#matchrecord').DataTable({
+                 language: {
+                     "info":         "_START_ 至 _END_ 条记录，共 _TOTAL_ 条",
+                     "infoEmpty":   "0 至 0 条记录，共 0 条",
+                     "search":       "全文搜索 ",
+                     "lengthMenu":   "_MENU_ 记录/页",
+                     "paginate": {
+                        "first":    "首页",
+                        "previous": "上页",
+                        "next":     "下页",
+                        "last":     "末页"
+                     },
+                     "zeroRecords": "没有数据",
+                 },
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "searchDelay": 400,
+                "ordering": true,
+                "order": [0, "desc"],
+                "info": true,
+                "autoWidth": false,
+                "sDom": '<"top"<"row"<"col-sm-3"i><"col-sm-9"f>>>t<"botton"<"row"<"col-sm-3"l><"col-sm-2"><"col-sm-7"p>>>',
+                "destroy": true,
+                "serverSide": true,
+                ajax: function (data, callback, settings) {
+                    var draw = data.draw;
+                    var pagesize = data.length;
+                    var start = data.start;
+                    var pageindex = (data.start) / data.length + 1;
+                    var fullsearchword = data.search.value;
+                    var rule_domain = $('#rule_domain').val();
+                    var rule_url = $('#rule_url').val();
+                    var time_range = $('#time_range').val();
+                    var par_data = {
+                        pageindex: pageindex,
+                        pagesize: pagesize,
+                        fullsearchword: fullsearchword,
+                        rule_domain: rule_domain,
+                        rule_url: rule_url,
+                        time_range: time_range,
+                    }
+                    var json={
+                        dataArray:JSON.stringify(par_data)
+                    }
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/rule/matchrecord_list_json",
+                        cache : false,
+                        data: json,
+                        dataType: "json",
+                        beforeSend: function () {
+                            $('#load').html('Loading ...');
+                        },
+                        success: function(data) {
+                            $('#load').html('');
+                            var arr = "";
+                            if ('object' == typeof data) {
+                                arr = data;
+                            } else {
+                                arr = $.parseJSON(data);
+                            }
+                            var returnData = {};
+                            returnData.draw = draw;
+                            returnData.recordsTotal = arr.matchrecordlist.pagination.totalcount;
+                            returnData.recordsFiltered = arr.matchrecordlist.pagination.totalcount;
+                            returnData.data = arr.matchrecordlist.matchrecordlistArray;
+                            callback(returnData);
+                            $("#refresh").removeClass("disabled");
+                        }
+                    });
+                },
+                columns: [
+                    {"data": "id", "title": "ID"},
+                    {"data": "rule_id"},
+                    {"data": "ip_addr"},
+                    {"data": "win_begin"},
+                    {"data": "win_end"},
+                    {"data": "request_cnt"},
+                    {"data": "create_time"}
+                ]
+            });
+        }
+    </script>
+
+
+{% endblock %}

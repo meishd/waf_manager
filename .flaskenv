@@ -1,0 +1,7 @@
+FLASK_APP = waf
+FLASK_ENV = development
+FLASK_CONFIG = dev
+FLASK_RUN_HOST = 0.0.0.0
+FLASK_RUN_PORT = 8080
+LOG_DIR = E:\logs
+LOG_LEVEL = INFO
